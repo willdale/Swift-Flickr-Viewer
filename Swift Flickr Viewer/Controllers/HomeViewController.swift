@@ -12,23 +12,24 @@ class HomeViewController: UIViewController {
     typealias DataSource            = UICollectionViewDiffableDataSource<Section, Photo>
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, Photo>
     
+    let search : UISearchController = UISearchController(searchResultsController: nil)
+    private var searchQuery : String = ""
+    
     private var collectionView  : UICollectionView! = nil
     
     private var datasource  : DataSource!
     private var snapshot    = DataSourceSnapshot()
-    
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        configureSearch()
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
-        fetchPhotos()
         
         navigationItem.title = "Home"
 
     }
-  
 }
 
 extension HomeViewController: UICollectionViewDelegate {
@@ -78,28 +79,39 @@ extension HomeViewController {
     }
 }
 
+extension HomeViewController: UISearchResultsUpdating {
+    private func configureSearch() {
+        search.searchResultsUpdater = self
+        search.obscuresBackgroundDuringPresentation = false
+        search.searchBar.placeholder = "Type something here to search"
+        navigationItem.searchController = search
+    }
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text else { return }
+        searchQuery = text
+
+        fetchPhotos()
+    }
+}
+
 // MARK: - Networking
 extension HomeViewController {
     private func url() -> String {
         let base = "https://www.flickr.com/services/rest/"
         let method = "?method=flickr.photos.search"
         let key = "&api_key=\(API.key)"
-        let search = "&text=New+Zealand"
+        let search = "&text=\(searchQuery)"
         let format = "&format=json&nojsoncallback=1"
         let url = base+method+key+search+format
         return url
     }
     private func fetchPhotos(completion: @escaping (Result<Response, Error>) -> ()) {
-
         let urlString = url()
         guard let url = URL(string: urlString) else { return }
-
         URLSession.shared.dataTask(with: url) { (data, response, error) in
-
             if let error = error {
                 completion(.failure(error))
             }
-
             do {
                 let photos = try JSONDecoder().decode(Response.self, from: data!)
                 completion(.success(photos))
@@ -113,9 +125,7 @@ extension HomeViewController {
         fetchPhotos { (result) in
             switch result {
             case .success(let response):
-
                 self.applySnapshot(photos: response.photos.photo)
-
             case .failure(let error):
                 print("Failed to fetch photos: \(error.localizedDescription)")
             }
