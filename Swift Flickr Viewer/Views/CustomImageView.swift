@@ -29,7 +29,6 @@ class CustomProfileImageView: UIImageView {
         
         URLSession.shared.dataTask(with: url!, completionHandler: { (data, response, error) in
             if error != nil {
-                self.loadFallBackImage()
                 return
             }
             DispatchQueue.main.async {

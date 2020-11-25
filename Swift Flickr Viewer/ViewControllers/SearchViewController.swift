@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  SearchViewController.swift
 //  Swift Flickr Viewer
 //
 //  Created by Will Dale on 21/11/2020.
@@ -7,19 +7,21 @@
 
 import UIKit
 
-class HomeViewController: UIViewController {
+class SearchViewController: UIViewController {
     
+    // MARK: Type Alias
     typealias DataSource            = UICollectionViewDiffableDataSource<Section, Photo>
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, Photo>
     
-    let search : UISearchController = UISearchController(searchResultsController: nil)
+    // MARK: Properties
+    let searchController : UISearchController = UISearchController(searchResultsController: nil)
     private var searchQuery : String = ""
     
     private var collectionView  : UICollectionView! = nil
-    
     private var datasource  : DataSource!
     private var snapshot    = DataSourceSnapshot()
         
+    // MARK: Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -27,38 +29,34 @@ class HomeViewController: UIViewController {
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
         
-        navigationItem.title = "Home"
+        navigationItem.title = "Search"
 
     }
 }
 
-extension HomeViewController: UICollectionViewDelegate {
+// MARK: - CollectionView
+extension SearchViewController: UICollectionViewDelegate {
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let photo = datasource.itemIdentifier(for: indexPath) else { return }
         print(photo)
     }
-}
-
-
-// MARK: - CollectionView
-extension HomeViewController {
+    
     enum Section {
         case main
     }
     
     private func createLayout() -> UICollectionViewLayout {
-        let itemSize    = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-        let item        = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
         
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(400))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(310))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 50        
         
         let layout = UICollectionViewCompositionalLayout(section: section)
-        
         return layout
     }
     
@@ -79,23 +77,26 @@ extension HomeViewController {
     }
 }
 
-extension HomeViewController: UISearchResultsUpdating {
+// MARK: - Search
+extension SearchViewController: UISearchResultsUpdating, UISearchBarDelegate {
     private func configureSearch() {
-        search.searchResultsUpdater = self
-        search.obscuresBackgroundDuringPresentation = false
-        search.searchBar.placeholder = "Type something here to search"
-        navigationItem.searchController = search
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.delegate = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Type something here to search"
+        navigationItem.searchController = searchController
     }
-    func updateSearchResults(for searchController: UISearchController) {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         guard let text = searchController.searchBar.text else { return }
         searchQuery = text
 
         fetchPhotos()
     }
+    func updateSearchResults(for searchController: UISearchController) {}
 }
 
 // MARK: - Networking
-extension HomeViewController {
+extension SearchViewController {
     private func url() -> String {
         let base = "https://www.flickr.com/services/rest/"
         let method = "?method=flickr.photos.search"
