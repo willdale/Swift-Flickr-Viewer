@@ -1,5 +1,5 @@
 //
-//  TagCellHeader.swift
+//  HomeHeaderCollectionReusableView.swift
 //  Swift Flickr Viewer
 //
 //  Created by Will Dale on 25/11/2020.
@@ -11,7 +11,7 @@ class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfigurin
     
     static var reuseIdentifier: String = "tagCellHeader"
     
-    let testText : UILabel = {
+    let headerText : UILabel = {
        let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -20,13 +20,12 @@ class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfigurin
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        addSubview(testText)
+        backgroundColor = .systemBackground
+        addSubview(headerText)
         
         NSLayoutConstraint.activate([
-            testText.topAnchor.constraint(equalTo: topAnchor),
-            testText.leadingAnchor.constraint(equalTo: leadingAnchor),
-            testText.trailingAnchor.constraint(equalTo: trailingAnchor),
-            testText.heightAnchor.constraint(equalToConstant: 60)
+            headerText.centerXAnchor.constraint(equalTo: centerXAnchor),
+            headerText.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
     

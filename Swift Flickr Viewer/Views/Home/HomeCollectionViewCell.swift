@@ -17,14 +17,19 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
     typealias DataSource            = UICollectionViewDiffableDataSource<Section, Photo>
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, Photo>
     typealias CollectionType        = HomeController.CollectionType
+    typealias FooterRegistration    = UICollectionView.SupplementaryRegistration<HomeItemFooterCollectionReusableView>
     
     // MARK: Properties
     private var collectionView  : UICollectionView! = nil
-    private var datasource      : DataSource!
-    private var snapshot        = DataSourceSnapshot()
+    private var dataSource      : DataSource!
+    private var currentSnapshot = DataSourceSnapshot()
 
-    private var cellTag : String?
-    private var cellType : CollectionType?
+    private var cellTag     : String?
+    private var cellType    : CollectionType?
+    
+    
+    
+    static let titleElementKind = "footer-element-kind"
     
     func configure(text: String, type: CollectionType) {
         self.cellTag = text
@@ -40,17 +45,18 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
         configureCollectionViewDataSource()
     }
 
-    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    
 }
 
 // MARK: - CollectionView
 extension HomeCollectionViewCell: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let photo = datasource.itemIdentifier(for: indexPath) else { return }
+        guard let photo = dataSource.itemIdentifier(for: indexPath) else { return }
         print(photo)
     }
     
@@ -59,26 +65,23 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
     }
     
     private func createLayout() -> UICollectionViewLayout {
+
         let layout = UICollectionViewCompositionalLayout {(sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
             
-            let leadingItem = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
-                                                                                        heightDimension: .fractionalHeight(1.0)))
-            leadingItem.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
+            let layoutStyle = Int.random(in: 0..<4)
+            var section: NSCollectionLayoutSection
             
-            let trailingItem = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                                                         heightDimension: .fractionalHeight(1.0)))
-            trailingItem.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
-            
-            let trailingGroup = NSCollectionLayoutGroup.vertical(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
-                                                                                                      heightDimension: .fractionalHeight(1)),
-                                                                 subitem: trailingItem, count: 2)
-            
-            let nestedGroup = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                                                                    heightDimension: .fractionalHeight(1.0)),
-                                                                 subitems: [leadingItem, trailingGroup])
-            let section = NSCollectionLayoutSection(group: nestedGroup)
+            switch layoutStyle {
+            case 0:
+                section = PhotoLayouts.layoutOne()
+            case 1:
+                section = PhotoLayouts.layoutTwo()
+            case 2:
+                section = PhotoLayouts.layoutThree()
+            default:
+                section = PhotoLayouts.layoutFour()
+            }
             return section
-            
         }
         return layout
     }
@@ -90,16 +93,23 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
         collectionView.backgroundColor = .white
         collectionView.alwaysBounceVertical = false
         collectionView.register(HomeItemCollectionViewCell.self, forCellWithReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier)
-        
-        
+        collectionView.register(HomeItemFooterCollectionReusableView.self, forSupplementaryViewOfKind: HomeViewController.titleElementKind, withReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier)
         addSubview(collectionView)
     }
     private func configureCollectionViewDataSource() {
-        datasource = DataSource(collectionView: collectionView, cellProvider: { (collectionView, indexPath, photo) -> HomeItemCollectionViewCell? in
+        dataSource = DataSource(collectionView: collectionView, cellProvider: { (collectionView, indexPath, photo) -> HomeItemCollectionViewCell? in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier, for: indexPath) as! HomeItemCollectionViewCell
             cell.configure(with: photo)
             return cell
         })
+        
+        let supplementaryRegistration = FooterRegistration(elementKind: "Footer") {(supplementaryView, string, indexPath) in
+            supplementaryView.titileText.text = self.cellTag
+        }
+        
+        dataSource.supplementaryViewProvider = { (view, kind, index) in
+            return self.collectionView.dequeueConfiguredReusableSupplementary(using: supplementaryRegistration, for: index)
+        }
     }
 }
 
@@ -115,7 +125,6 @@ extension HomeCollectionViewCell {
         } else if cellType == .group {
             search = "&group_id=\(cellTag!)"
         }
-        
         let perPage = "&per_page=3"
         let format = "&format=json&nojsoncallback=1"
         let url = base+method+key+search+perPage+format
@@ -141,19 +150,17 @@ extension HomeCollectionViewCell {
         fetchPhotos { (result) in
             switch result {
             case .success(let response):
-                self.applySnapshot(photos: response.photos.photo)
+                self.applySnapshot(photos: response.photos, photoArray: response.photos.photo)
             case .failure(let error):
                 print("Failed to fetch photos: \(error.localizedDescription)")
             }
         }
     }
     
-    private func applySnapshot(photos: [Photo]) {
-        snapshot = DataSourceSnapshot()
-        snapshot.appendSections([Section.main])
-        snapshot.appendItems(photos)
-        datasource.apply(snapshot, animatingDifferences: false)
+    private func applySnapshot(photos: Photos ,photoArray: [Photo]) {
+        currentSnapshot = DataSourceSnapshot()
+        currentSnapshot.appendSections([Section.main])
+        currentSnapshot.appendItems(photoArray)
+        dataSource.apply(currentSnapshot, animatingDifferences: false)
     }
 }
-
-
