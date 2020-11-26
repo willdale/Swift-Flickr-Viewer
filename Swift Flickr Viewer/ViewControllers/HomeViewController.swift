@@ -16,7 +16,7 @@ class HomeViewController: UIViewController {
     typealias HeaderRegistration    = UICollectionView.SupplementaryRegistration<HomeHeaderCollectionReusableView>
     
     // MARK: Properties
-    private let tagsController  = HomeController()
+    private let homeController  = HomeController()
     private var collectionView  : UICollectionView! = nil
     private var dataSource      : DataSource!
     private var currentSnapshot : DataSourceSnapshot! = nil
@@ -28,7 +28,7 @@ class HomeViewController: UIViewController {
         
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
-                
+        
         navigationItem.title = "Home"
     }
     
@@ -42,18 +42,18 @@ extension HomeViewController: UICollectionViewDelegate {
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                   heightDimension: .fractionalHeight(1.0))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
+            
             let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.9),
                                                    heightDimension: .fractionalWidth(0.9))
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-
+            
             let section = NSCollectionLayoutSection(group: group)
             section.orthogonalScrollingBehavior = .continuous
             section.interGroupSpacing = 8
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0)
-
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            
             let titleSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   heightDimension: .estimated(44))
+                                                   heightDimension: .estimated(60))
             let titleSupplementary = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: titleSize,
                                                                                  elementKind: HomeViewController.titleElementKind,
                                                                                  alignment: .top)
@@ -63,7 +63,7 @@ extension HomeViewController: UICollectionViewDelegate {
         
         let config = UICollectionViewCompositionalLayoutConfiguration()
         config.interSectionSpacing = 20
-
+        
         let layout = UICollectionViewCompositionalLayout(sectionProvider: sectionProvider, configuration: config)
         return layout
     }
@@ -83,30 +83,29 @@ extension HomeViewController: UICollectionViewDelegate {
             cell.configure(text: tag.title, type: HomeController.CollectionType(rawValue: tag.type)!)
         }
         
-       dataSource = DataSource(collectionView: collectionView) {
+        dataSource = DataSource(collectionView: collectionView) {
             (collectionView: UICollectionView, indexPath: IndexPath, item: HomeController.Item) -> UICollectionViewCell? in
             // Return the cell.
-        return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)
+            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)
         }
         
         let supplementaryRegistration = HeaderRegistration(elementKind: "Header") {(supplementaryView, string, indexPath) in
             if let snapshot = self.currentSnapshot {
                 // Populate the view with our section's description.
                 let tag = snapshot.sectionIdentifiers[indexPath.section]
-                supplementaryView.testText.text = tag.title
+                supplementaryView.headerText.text = tag.title
             }
         }
         
         dataSource.supplementaryViewProvider = { (view, kind, index) in
-            return self.collectionView.dequeueConfiguredReusableSupplementary(
-                using: supplementaryRegistration, for: index)
+            return self.collectionView.dequeueConfiguredReusableSupplementary(using: supplementaryRegistration, for: index)
         }
         
         currentSnapshot = DataSourceSnapshot()
-        tagsController.collections.forEach {
+        homeController.collections.forEach {
             let collection = $0
             currentSnapshot.appendSections([collection])
-            currentSnapshot.appendItems(collection.tags)
+            currentSnapshot.appendItems(collection.items)
         }
         dataSource.apply(currentSnapshot, animatingDifferences: false)
     }
