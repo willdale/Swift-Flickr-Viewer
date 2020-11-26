@@ -11,31 +11,55 @@ import UIKit
 
 class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
    
-    static var reuseIdentifier: String = "tagCell"
+    static var reuseIdentifier: String = "homeCollectionViewCell"
     
     // MARK: Type Alias
-    typealias DataSource            = UICollectionViewDiffableDataSource<Section, Photo>
-    typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, Photo>
+    typealias DataSource            = UICollectionViewDiffableDataSource<Section, PhotoResponse.Photos.Photo>
+    typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, PhotoResponse.Photos.Photo>
     typealias CollectionType        = HomeController.CollectionType
     typealias FooterRegistration    = UICollectionView.SupplementaryRegistration<HomeItemFooterCollectionReusableView>
     
     // MARK: Properties
+    private var group: GroupResponse.Group! = nil {
+        didSet {
+            self.cellTag = self.group.name._content
+        }
+    }
+    private var person: PersonResponse.Person! = nil {
+        didSet {
+            self.cellTag = self.person.username._content
+        }
+    }
     private var collectionView  : UICollectionView! = nil
     private var dataSource      : DataSource!
     private var currentSnapshot = DataSourceSnapshot()
-
+    
     private var cellTag     : String?
     private var cellType    : CollectionType?
-    
-    
     
     static let titleElementKind = "footer-element-kind"
     
     func configure(text: String, type: CollectionType) {
-        self.cellTag = text
-        self.cellType = type
         
-        fetchPhotos()
+        self.cellType = type
+        self.cellTag = text
+
+        if type == .group {
+            getGroup(for: text) { [weak self] (done) in
+                if done {
+                    self?.getPhotos(for: text, of: type)
+                }
+            }
+            
+        } else if type == .person {
+            getPerson(for: text) { [weak self] (done) in
+                if done {
+                    self?.getPhotos(for: text, of: type)
+                }
+            }
+        } else {
+            getPhotos(for: text, of: type)
+        }
     }
 
     override init(frame: CGRect) {
@@ -43,13 +67,63 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
         backgroundColor = .white
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
+ 
+        layer.shadowRadius = 8.0
+        layer.shadowOpacity = 0.20
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 5)
+        
     }
-
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
+// MARK: - Network
+extension HomeCollectionViewCell {
     
+    private func getGroup(for text: String,  completion: @escaping (Bool) -> ()) {
+        let groupRequest = GroupRequest(groupID: text)
+        groupRequest.fetchGroup { [weak self] result in
+            switch result {
+            case .failure(let error):
+                print(error)
+            case .success(let group):
+                self?.group = group.group
+                completion(true)
+            }
+        }
+    }
+    private func getPerson(for text: String,  completion: @escaping (Bool) -> ()) {
+        let personRequest = PersonRequest(personID: text)
+        personRequest.fetchPerson { [weak self] result in
+            switch result {
+            case .failure(let error):
+                print(error)
+            case .success(let person):
+                self?.person = person.person
+                completion(true)
+            }
+        }
+    }
+    private func getPhotos(for text: String, of type: HomeController.CollectionType) {
+        let photoRequest = PhotoRequest(photoQuery: text, type: type)
+        photoRequest.fetchPhotos { [weak self] result in
+            switch result {
+            case .failure(let error):
+                print(error)
+            case .success(let response):
+                self?.applySnapshot(photos: response.photos, photoArray: response.photos.photo)
+            }
+        }
+    }
+    private func applySnapshot(photos: PhotoResponse.Photos, photoArray: [PhotoResponse.Photos.Photo]) {
+        currentSnapshot = DataSourceSnapshot()
+        currentSnapshot.appendSections([Section.main])
+        currentSnapshot.appendItems(photoArray)
+        dataSource.apply(currentSnapshot, animatingDifferences: false)
+    }
 }
 
 // MARK: - CollectionView
@@ -103,64 +177,24 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
             return cell
         })
         
-        let supplementaryRegistration = FooterRegistration(elementKind: "Footer") {(supplementaryView, string, indexPath) in
-            supplementaryView.titileText.text = self.cellTag
+        let supplementaryRegistration =  FooterRegistration(elementKind: "Footer") { [weak self] (supplementaryView, string, indexPath) in
+            
+            
+            switch self!.cellType {
+            case .tag:
+                supplementaryView.titileText.text = self!.cellTag
+            case .group:
+                supplementaryView.titileText.text = self!.cellTag
+            case .person:
+                supplementaryView.titileText.text = self!.cellTag
+            default:
+                supplementaryView.titileText.text = self!.cellTag
+            }
+            
         }
         
         dataSource.supplementaryViewProvider = { (view, kind, index) in
             return self.collectionView.dequeueConfiguredReusableSupplementary(using: supplementaryRegistration, for: index)
         }
-    }
-}
-
-// MARK: - Networking
-extension HomeCollectionViewCell {
-    private func url() -> String {
-        let base = "https://www.flickr.com/services/rest/"
-        let method = "?method=flickr.photos.search"
-        let key = "&api_key=\(API.key)"
-        var search = ""
-        if cellType == .tag {
-            search = "&tags=\(cellTag!)"
-        } else if cellType == .group {
-            search = "&group_id=\(cellTag!)"
-        }
-        let perPage = "&per_page=3"
-        let format = "&format=json&nojsoncallback=1"
-        let url = base+method+key+search+perPage+format
-        return url
-    }
-    private func fetchPhotos(completion: @escaping (Result<Response, Error>) -> ()) {
-        let urlString = url()
-        guard let url = URL(string: urlString) else { return }
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let error = error {
-                completion(.failure(error))
-            }
-            do {
-                let photos = try JSONDecoder().decode(Response.self, from: data!)
-                completion(.success(photos))
-            } catch let jsonError {
-                completion(.failure(jsonError))
-            }
-        }.resume()
-
-    }
-    private func fetchPhotos() {
-        fetchPhotos { (result) in
-            switch result {
-            case .success(let response):
-                self.applySnapshot(photos: response.photos, photoArray: response.photos.photo)
-            case .failure(let error):
-                print("Failed to fetch photos: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    private func applySnapshot(photos: Photos ,photoArray: [Photo]) {
-        currentSnapshot = DataSourceSnapshot()
-        currentSnapshot.appendSections([Section.main])
-        currentSnapshot.appendItems(photoArray)
-        dataSource.apply(currentSnapshot, animatingDifferences: false)
     }
 }

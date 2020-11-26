@@ -10,8 +10,8 @@ import UIKit
 class SearchViewController: UIViewController {
     
     // MARK: Type Alias
-    typealias DataSource            = UICollectionViewDiffableDataSource<Section, Photo>
-    typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, Photo>
+    typealias DataSource            = UICollectionViewDiffableDataSource<Section, PhotoResponse.Photos.Photo>
+    typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, PhotoResponse.Photos.Photo>
     
     // MARK: Properties
     let searchController : UISearchController = UISearchController(searchResultsController: nil)
@@ -106,7 +106,7 @@ extension SearchViewController {
         let url = base+method+key+search+format
         return url
     }
-    private func fetchPhotos(completion: @escaping (Result<Response, Error>) -> ()) {
+    private func fetchPhotos(completion: @escaping (Result<PhotoResponse, Error>) -> ()) {
         let urlString = url()
         guard let url = URL(string: urlString) else { return }
         URLSession.shared.dataTask(with: url) { (data, response, error) in
@@ -114,7 +114,7 @@ extension SearchViewController {
                 completion(.failure(error))
             }
             do {
-                let photos = try JSONDecoder().decode(Response.self, from: data!)
+                let photos = try JSONDecoder().decode(PhotoResponse.self, from: data!)
                 completion(.success(photos))
             } catch let jsonError {
                 completion(.failure(jsonError))
@@ -133,7 +133,7 @@ extension SearchViewController {
         }
     }
     
-    private func applySnapshot(photos: [Photo]) {
+    private func applySnapshot(photos: [PhotoResponse.Photos.Photo]) {
         snapshot = DataSourceSnapshot()
         snapshot.appendSections([Section.main])
         snapshot.appendItems(photos)

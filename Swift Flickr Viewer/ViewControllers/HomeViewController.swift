@@ -13,7 +13,6 @@ class HomeViewController: UIViewController {
     typealias CellRegistration      = UICollectionView.CellRegistration<HomeCollectionViewCell, HomeController.Item>
     typealias DataSource            = UICollectionViewDiffableDataSource<HomeController.ItemCollection, HomeController.Item>
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<HomeController.ItemCollection, HomeController.Item>
-    typealias HeaderRegistration    = UICollectionView.SupplementaryRegistration<HomeHeaderCollectionReusableView>
     
     // MARK: Properties
     private let homeController  = HomeController()
@@ -36,7 +35,7 @@ class HomeViewController: UIViewController {
 
 // MARK: - CollectionView
 extension HomeViewController: UICollectionViewDelegate {
-    
+
     private func createLayout() -> UICollectionViewLayout {
         let sectionProvider = { (sectionIndex: Int, layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
@@ -50,14 +49,8 @@ extension HomeViewController: UICollectionViewDelegate {
             let section = NSCollectionLayoutSection(group: group)
             section.orthogonalScrollingBehavior = .continuous
             section.interGroupSpacing = 8
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
             
-            let titleSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
-                                                   heightDimension: .estimated(60))
-            let titleSupplementary = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: titleSize,
-                                                                                 elementKind: HomeViewController.titleElementKind,
-                                                                                 alignment: .top)
-            section.boundarySupplementaryItems = [titleSupplementary]
             return section
         }
         
@@ -68,15 +61,16 @@ extension HomeViewController: UICollectionViewDelegate {
         return layout
     }
     
+    // MARK: Config CollectionView
     private func configureCollectionViewLayout() {
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: createLayout())
         collectionView.delegate = self
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = .systemGroupedBackground
         collectionView.register(HomeCollectionViewCell.self, forCellWithReuseIdentifier: HomeCollectionViewCell.reuseIdentifier)
-        collectionView.register(HomeHeaderCollectionReusableView.self, forSupplementaryViewOfKind: HomeViewController.titleElementKind, withReuseIdentifier: HomeHeaderCollectionReusableView.reuseIdentifier)
         view.addSubview(collectionView)
     }
+    // MARK: Config Datasource
     private func configureCollectionViewDataSource() {
         let cellRegistration = CellRegistration { (cell, indexPath, tag) in
             // Populate the cell with our item description.
@@ -87,18 +81,6 @@ extension HomeViewController: UICollectionViewDelegate {
             (collectionView: UICollectionView, indexPath: IndexPath, item: HomeController.Item) -> UICollectionViewCell? in
             // Return the cell.
             return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)
-        }
-        
-        let supplementaryRegistration = HeaderRegistration(elementKind: "Header") {(supplementaryView, string, indexPath) in
-            if let snapshot = self.currentSnapshot {
-                // Populate the view with our section's description.
-                let tag = snapshot.sectionIdentifiers[indexPath.section]
-                supplementaryView.headerText.text = tag.title
-            }
-        }
-        
-        dataSource.supplementaryViewProvider = { (view, kind, index) in
-            return self.collectionView.dequeueConfiguredReusableSupplementary(using: supplementaryRegistration, for: index)
         }
         
         currentSnapshot = DataSourceSnapshot()
