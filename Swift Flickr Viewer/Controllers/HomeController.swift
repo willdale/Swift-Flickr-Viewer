@@ -8,13 +8,7 @@
 import UIKit
 
 class HomeController {
-    
-    enum CollectionType: String {
-        case tag
-        case group
-        case person
-    }
-    
+
     struct Item: Hashable {
         let title: String
         let type : String
@@ -47,15 +41,15 @@ extension HomeController {
     func generateCollections() {
         _collections = [
             ItemCollection(title: "Your Tags", items: [Item(title: "Mountains",    type: CollectionType.tag.rawValue),
-                                                      Item(title: "Lake",         type: CollectionType.tag.rawValue),
-                                                      Item(title: "Landscape",    type: CollectionType.tag.rawValue),
-                                                      Item(title: "Seascape",     type: CollectionType.tag.rawValue)]),
+                                                       Item(title: "Lake",         type: CollectionType.tag.rawValue),
+                                                       Item(title: "Landscape",    type: CollectionType.tag.rawValue),
+                                                       Item(title: "Seascape",     type: CollectionType.tag.rawValue)]),
             
-            ItemCollection(title: "Your Groups", items: [Item(title: "16978849@N00", type: CollectionType.group.rawValue),
-                                                        Item(title: "13376338@N00", type: CollectionType.group.rawValue)]),
+            ItemCollection(title: "Your Groups", items: [Item(title: "16978849@N00",  type: CollectionType.group.rawValue),
+                                                         Item(title: "13376338@N00",  type: CollectionType.group.rawValue)]),
             
             ItemCollection(title: "People you Follow", items: [Item(title: "135909126@N06", type: CollectionType.person.rawValue),
-                                                               Item(title: "45992839@N04", type: CollectionType.person.rawValue)])
+                                                               Item(title: "45992839@N04",  type: CollectionType.person.rawValue)])
         ]
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-
+// flickr.groups.getInfo
 struct GroupRequest {
     let groupURL    : URL
     

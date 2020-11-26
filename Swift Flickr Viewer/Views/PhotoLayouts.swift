@@ -9,6 +9,13 @@ import UIKit
 
 struct PhotoLayouts {
     
+    static func shadow(_ layer: CALayer) {
+        layer.shadowRadius = 8.0
+        layer.shadowOpacity = 0.20
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: 5)
+    }
+    
     static let cellInsets  = NSDirectionalEdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4)
     
     //                  LayoutOne

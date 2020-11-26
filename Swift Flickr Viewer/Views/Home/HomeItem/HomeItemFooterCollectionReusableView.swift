@@ -33,3 +33,33 @@ class HomeItemFooterCollectionReusableView: UICollectionReusableView, SelfConfig
         fatalError("init(coder:) has not been implemented")
     }
 }
+
+
+class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfiguringCell {
+    
+    static var reuseIdentifier: String = "homeHeaderCollectionReusableView"
+        
+    let titileText : UILabel = {
+       let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        backgroundColor = .systemBackground
+        addSubview(titileText)
+        
+        NSLayoutConstraint.activate([
+            titileText.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titileText.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+        
+        PhotoLayouts.shadow(layer)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}

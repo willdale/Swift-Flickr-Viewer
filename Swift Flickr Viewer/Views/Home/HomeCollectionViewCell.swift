@@ -16,7 +16,6 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
     // MARK: Type Alias
     typealias DataSource            = UICollectionViewDiffableDataSource<Section, PhotoResponse.Photos.Photo>
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, PhotoResponse.Photos.Photo>
-    typealias CollectionType        = HomeController.CollectionType
     typealias FooterRegistration    = UICollectionView.SupplementaryRegistration<HomeItemFooterCollectionReusableView>
     
     // MARK: Properties
@@ -62,16 +61,15 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
         }
     }
 
+    
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
  
-        layer.shadowRadius = 8.0
-        layer.shadowOpacity = 0.20
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 5)
+        PhotoLayouts.shadow(layer)
         
     }
     
@@ -83,7 +81,7 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
 // MARK: - Network
 extension HomeCollectionViewCell {
     
-    private func getGroup(for text: String,  completion: @escaping (Bool) -> ()) {
+    private func getGroup(for text: String, completion: @escaping (Bool) -> ()) {
         let groupRequest = GroupRequest(groupID: text)
         groupRequest.fetchGroup { [weak self] result in
             switch result {
@@ -107,7 +105,7 @@ extension HomeCollectionViewCell {
             }
         }
     }
-    private func getPhotos(for text: String, of type: HomeController.CollectionType) {
+    private func getPhotos(for text: String, of type: CollectionType) {
         let photoRequest = PhotoRequest(photoQuery: text, type: type)
         photoRequest.fetchPhotos { [weak self] result in
             switch result {
@@ -179,7 +177,6 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
         
         let supplementaryRegistration =  FooterRegistration(elementKind: "Footer") { [weak self] (supplementaryView, string, indexPath) in
             
-            
             switch self!.cellType {
             case .tag:
                 supplementaryView.titileText.text = self!.cellTag
@@ -190,7 +187,6 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
             default:
                 supplementaryView.titileText.text = self!.cellTag
             }
-            
         }
         
         dataSource.supplementaryViewProvider = { (view, kind, index) in

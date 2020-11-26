@@ -7,10 +7,18 @@
 
 import Foundation
 
+//flickr.photos.search
+
+enum CollectionType: String {
+    case tag
+    case group
+    case person
+}
+
 struct PhotoRequest {
     let photoURL    : URL
 
-    init(photoQuery: String, type: HomeController.CollectionType) {
+    init(photoQuery: String, type: CollectionType) {
         
         let base = "https://www.flickr.com/services/rest/"
         let method = "?method=flickr.photos.search"
@@ -55,14 +63,22 @@ struct PhotoResponse: Codable, Hashable {
     let stat    : String
     
     struct Photos: Codable, Hashable {
+        let page    : Int
+        let pages   : Int
+        let perpage : Int
+        let total   : String
         let photo   : [Photo]
         
         struct Photo: Codable, Hashable {
-            let id      : String
-            let owner   : String
-            let secret  : String
-            let server  : String
-            let title   : String
+            let id          : String
+            let owner       : String
+            let secret      : String
+            let server      : String
+            let farm        : Int
+            let title       : String
+            let ispublic    : Int
+            let isfriend    : Int
+            let isfamily    : Int
         }
     }
 }
