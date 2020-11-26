@@ -1,17 +1,17 @@
 //
-//  HomeHeaderCollectionReusableView.swift
+//  HomeItemFooterCollectionReusableView.swift
 //  Swift Flickr Viewer
 //
-//  Created by Will Dale on 25/11/2020.
+//  Created by Will Dale on 26/11/2020.
 //
 
 import UIKit
 
-class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfiguringCell {
+class HomeItemFooterCollectionReusableView: UICollectionReusableView, SelfConfiguringCell {
     
-    static var reuseIdentifier: String = "tagCellHeader"
+    static var reuseIdentifier: String = "homeItemFooter"
     
-    let headerText : UILabel = {
+    let titileText : UILabel = {
        let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -21,11 +21,11 @@ class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfigurin
         super.init(frame: frame)
         
         backgroundColor = .systemBackground
-        addSubview(headerText)
+        addSubview(titileText)
         
         NSLayoutConstraint.activate([
-            headerText.centerXAnchor.constraint(equalTo: centerXAnchor),
-            headerText.centerYAnchor.constraint(equalTo: centerYAnchor)
+            titileText.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titileText.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
     

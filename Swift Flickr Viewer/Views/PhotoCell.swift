@@ -14,11 +14,7 @@ class PhotoCell: UICollectionViewCell, SelfConfiguringCell {
     var ownerLabelQuery : String = "135909126@N06"
     var person : PersonResponse.Person?
     
-    func configure(with photo: Photo) {
-        setupThumbnailImage(photo)
-    }
-    
-    func setupThumbnailImage(_ photo: Photo) {
+    func configure(with photo: PhotoResponse.Photos.Photo) {
         let base = "https://live.staticflickr.com/\(photo.server)/\(photo.id)_\(photo.secret).jpg"
         thumbnailImageView.loadImage(using: base)
     }
