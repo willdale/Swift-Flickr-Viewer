@@ -18,7 +18,7 @@ enum CollectionType: String {
 struct PhotoRequest {
     let photoURL    : URL
 
-    init(photoQuery: String, type: CollectionType) {
+    init(photoQuery: String, type: CollectionType, photosPerPage: Int) {
         
         let base = "https://www.flickr.com/services/rest/"
         let method = "?method=flickr.photos.search"
@@ -34,7 +34,7 @@ struct PhotoRequest {
             search = "&user_id=\(photoQuery)"
         }
         
-        let perPage = "&per_page=3"
+        let perPage = "&per_page=\(photosPerPage)"
         let format = "&format=json&nojsoncallback=1"
         let urlString = base+method+key+search+perPage+format
         
