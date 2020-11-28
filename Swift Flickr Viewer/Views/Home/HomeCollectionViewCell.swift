@@ -19,6 +19,8 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
     typealias FooterRegistration    = UICollectionView.SupplementaryRegistration<HomeItemFooterCollectionReusableView>
     
     // MARK: Properties
+    var navigationController : UINavigationController?
+    
     private var group: GroupResponse.Group! = nil {
         didSet {
             self.cellTag = self.group.name._content
@@ -49,7 +51,6 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
                     self?.getPhotos(for: text, of: type)
                 }
             }
-            
         } else if type == .person {
             getPerson(for: text) { [weak self] (done) in
                 if done {
@@ -106,7 +107,7 @@ extension HomeCollectionViewCell {
         }
     }
     private func getPhotos(for text: String, of type: CollectionType) {
-        let photoRequest = PhotoRequest(photoQuery: text, type: type)
+        let photoRequest = PhotoRequest(photoQuery: text, type: type, photosPerPage: 3)
         photoRequest.fetchPhotos { [weak self] result in
             switch result {
             case .failure(let error):
@@ -128,8 +129,19 @@ extension HomeCollectionViewCell {
 extension HomeCollectionViewCell: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let photo = dataSource.itemIdentifier(for: indexPath) else { return }
-        print(photo)
+        
+        let vc = ItemDetailViewController()
+        vc.item = cellType
+        vc.itemString = cellTag
+        
+        switch cellType {
+        case .group:
+            navigationController?.show(vc, sender: nil)
+        case .person:
+            navigationController?.show(vc, sender: nil)
+        default:
+            navigationController?.show(vc, sender: nil)
+        }
     }
     
     enum Section {
