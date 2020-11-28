@@ -28,10 +28,9 @@ class HomeViewController: UIViewController {
         
         configureCollectionViewLayout()
         configureCollectionViewDataSource()
-        
-        navigationItem.title = "Home"
+                
+        tabBarController?.navigationItem.title = "Home"
     }
-    
 }
 
 // MARK: - CollectionView
@@ -52,7 +51,6 @@ extension HomeViewController: UICollectionViewDelegate {
             let titleSupplementary = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: titleSize,
                                                                                  elementKind: HomeViewController.titleElementKind,
                                                                                  alignment: .top)
-            
             let section = NSCollectionLayoutSection(group: group)
             section.orthogonalScrollingBehavior = .continuous
             section.contentInsets = NSDirectionalEdgeInsets(top: 22, leading: 12, bottom: 0, trailing: 12)
@@ -76,23 +74,26 @@ extension HomeViewController: UICollectionViewDelegate {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = .systemGroupedBackground
         collectionView.register(HomeCollectionViewCell.self, forCellWithReuseIdentifier: HomeCollectionViewCell.reuseIdentifier)
+        collectionView.contentInset = UIEdgeInsets(top: 30, left: 0, bottom: 0, right: 0)
         view.addSubview(collectionView)
     }
     // MARK: Config Datasource
     private func configureCollectionViewDataSource() {
         let cellRegistration = CellRegistration { (cell, indexPath, tag) in
-            // Populate the cell with our item description.
             cell.configure(text: tag.title, type: CollectionType(rawValue: tag.type)!)
+            cell.navigationController = self.navigationController
         }
         
         dataSource = DataSource(collectionView: collectionView) {
             (collectionView: UICollectionView, indexPath: IndexPath, item: HomeController.Item) -> UICollectionViewCell? in
-            // Return the cell.
             return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)
         }
         
         let supplementaryRegistration =  HeaderRegistration(elementKind: "Header") { (supplementaryView, string, indexPath) in
-                supplementaryView.titileText.text = "Bob"
+            if let snapshot = self.currentSnapshot {
+                let type = snapshot.sectionIdentifiers[indexPath.section]
+                supplementaryView.titileText.text = type.title
+            }
         }
         
         dataSource.supplementaryViewProvider = { (view, kind, index) in
