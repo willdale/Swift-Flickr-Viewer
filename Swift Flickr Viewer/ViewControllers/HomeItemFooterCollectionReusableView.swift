@@ -8,7 +8,7 @@
 import UIKit
 
 class HomeItemFooterCollectionReusableView: UICollectionReusableView, SelfConfiguringCell {
-    
+
     static var reuseIdentifier: String = "homeItemFooter"
     
     let titileText : UILabel = {
@@ -17,6 +17,9 @@ class HomeItemFooterCollectionReusableView: UICollectionReusableView, SelfConfig
         return label
     }()
     
+    func configure(with type: SearchType, coordinator: MainCoordinator) {
+        titileText.text = type.title
+    }
     override init(frame: CGRect) {
         super.init(frame: frame)
         
@@ -44,6 +47,10 @@ class HomeHeaderCollectionReusableView: UICollectionReusableView, SelfConfigurin
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    func configure(with type: SearchType, coordinator: MainCoordinator) {
+        titileText.text = type.type.rawValue.capitalized
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)

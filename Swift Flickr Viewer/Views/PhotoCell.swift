@@ -7,7 +7,7 @@
 
 import UIKit
 
-class PhotoCell: UICollectionViewCell, SelfConfiguringCell {
+class PhotoCell: UICollectionViewCell, SelfConfiguringPhotoCell {
    
     static var reuseIdentifier: String = "photoCell"
     
@@ -37,14 +37,12 @@ class PhotoCell: UICollectionViewCell, SelfConfiguringCell {
     
     private func setupView() {
         addSubview(thumbnailImageView)
-        
         NSLayoutConstraint.activate([
             thumbnailImageView.topAnchor.constraint(equalTo: topAnchor),
             thumbnailImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
             thumbnailImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            thumbnailImageView.heightAnchor.constraint(equalToConstant: 300)
+            thumbnailImageView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
-
     }
     
     required init?(coder: NSCoder) {

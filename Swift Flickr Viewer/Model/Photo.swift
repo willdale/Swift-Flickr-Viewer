@@ -35,7 +35,7 @@ struct PhotoRequest {
         }
         
         let perPage = "&per_page=\(photosPerPage)"
-        let format = "&format=json&nojsoncallback=1"
+        let format = "&safe_search=1&format=json&nojsoncallback=1"
         let urlString = base+method+key+search+perPage+format
         
 
@@ -49,7 +49,9 @@ struct PhotoRequest {
                 completion(.failure(error))
             }
             do {
-                let photos = try JSONDecoder().decode(PhotoResponse.self, from: data!)
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                let photos = try decoder.decode(PhotoResponse.self, from: data!)
                 completion(.success(photos))
             } catch let jsonError {
                 completion(.failure(jsonError))

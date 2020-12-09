@@ -7,16 +7,15 @@
 
 import UIKit
 
-class TabBarController: UITabBarController {
+class MainTabBarController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
                 
         let firstViewController = HomeViewController()
         firstViewController.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
         
-        let secondViewController = TagViewController()
+        let secondViewController = HomeViewController()
         secondViewController.tabBarItem = UITabBarItem(title: "Tags", image: UIImage(systemName: "tag"), tag: 1)
         
         let thirdViewController = HomeViewController()
@@ -25,7 +24,7 @@ class TabBarController: UITabBarController {
         let fourthViewController = HomeViewController()
         fourthViewController.tabBarItem = UITabBarItem(title: "People", image: UIImage(systemName: "person"), tag: 3)
 
-        let fifthViewController = SearchViewController()
+        let fifthViewController = HomeViewController()
         fifthViewController.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 4)
 
         let tabBarList = [firstViewController, secondViewController, thirdViewController, fourthViewController, fifthViewController]

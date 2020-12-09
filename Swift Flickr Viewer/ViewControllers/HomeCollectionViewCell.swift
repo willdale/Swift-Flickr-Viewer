@@ -10,7 +10,8 @@ import Foundation
 import UIKit
 
 class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
-   
+
+    weak var coordinator: MainCoordinator?
     static var reuseIdentifier: String = "homeCollectionViewCell"
     
     // MARK: Type Alias
@@ -18,9 +19,7 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
     typealias DataSourceSnapshot    = NSDiffableDataSourceSnapshot<Section, PhotoResponse.Photos.Photo>
     typealias FooterRegistration    = UICollectionView.SupplementaryRegistration<HomeItemFooterCollectionReusableView>
     
-    // MARK: Properties
-    var navigationController : UINavigationController?
-    
+    // MARK: Properties    
     private var group: GroupResponse.Group! = nil {
         didSet {
             self.cellTag = self.group.name._content
@@ -40,29 +39,26 @@ class HomeCollectionViewCell: UICollectionViewCell, SelfConfiguringCell {
     
     static let titleElementKind = "footer-element-kind"
     
-    func configure(text: String, type: CollectionType) {
-        
-        self.cellType = type
-        self.cellTag = text
-
-        if type == .group {
-            getGroup(for: text) { [weak self] (done) in
+    func configure(with type: SearchType, coordinator: MainCoordinator) {
+        self.cellType = type.type
+        self.cellTag = type.title
+        self.coordinator = coordinator
+        if type.type == .group {
+            getGroup(for: type.title) { [weak self] (done) in
                 if done {
-                    self?.getPhotos(for: text, of: type)
+                    self?.getPhotos(for: type.title, of: type.type)
                 }
             }
-        } else if type == .person {
-            getPerson(for: text) { [weak self] (done) in
+        } else if type.type == .person {
+            getPerson(for: type.title) { [weak self] (done) in
                 if done {
-                    self?.getPhotos(for: text, of: type)
+                    self?.getPhotos(for: type.title, of: type.type)
                 }
             }
         } else {
-            getPhotos(for: text, of: type)
+            getPhotos(for: type.title, of: type.type)
         }
     }
-
-    
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -129,19 +125,19 @@ extension HomeCollectionViewCell {
 extension HomeCollectionViewCell: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
-        let vc = ItemDetailViewController()
-        vc.item = cellType
-        vc.itemString = cellTag
-        
-        switch cellType {
-        case .group:
-            navigationController?.show(vc, sender: nil)
-        case .person:
-            navigationController?.show(vc, sender: nil)
-        default:
-            navigationController?.show(vc, sender: nil)
-        }
+        let photo = currentSnapshot.itemIdentifiers[indexPath.item]
+        coordinator?.typeDetailView(with: photo)
+//        let vc = ItemDetailViewController()
+//        vc.item = cellType
+//        vc.itemString = cellTag
+//        switch cellType {
+//        case .group:
+//            navigationController?.show(vc, sender: nil)
+//        case .person:
+//            navigationController?.show(vc, sender: nil)
+//        default:
+//            navigationController?.show(vc, sender: nil)
+//        }
     }
     
     enum Section {
@@ -176,13 +172,13 @@ extension HomeCollectionViewCell: UICollectionViewDelegate {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = .white
         collectionView.alwaysBounceVertical = false
-        collectionView.register(HomeItemCollectionViewCell.self, forCellWithReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier)
-        collectionView.register(HomeItemFooterCollectionReusableView.self, forSupplementaryViewOfKind: HomeViewController.titleElementKind, withReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier)
+        collectionView.register(PhotoCell.self, forCellWithReuseIdentifier: PhotoCell.reuseIdentifier)
+        collectionView.register(HomeItemFooterCollectionReusableView.self, forSupplementaryViewOfKind: HomeViewController.titleElementKind, withReuseIdentifier: HomeItemFooterCollectionReusableView.reuseIdentifier)
         addSubview(collectionView)
     }
     private func configureCollectionViewDataSource() {
-        dataSource = DataSource(collectionView: collectionView, cellProvider: { (collectionView, indexPath, photo) -> HomeItemCollectionViewCell? in
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: HomeItemCollectionViewCell.reuseIdentifier, for: indexPath) as! HomeItemCollectionViewCell
+        dataSource = DataSource(collectionView: collectionView, cellProvider: { (collectionView, indexPath, photo) -> PhotoCell? in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoCell.reuseIdentifier, for: indexPath) as! PhotoCell
             cell.configure(with: photo)
             return cell
         })
